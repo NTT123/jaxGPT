@@ -37,8 +37,8 @@ batch_size = (
     num_tokens_per_batch // num_devices // gradient_accumulation_steps // seq_len
 )
 print("Batch size:", batch_size)
-prefix = "standard"
-wandb_run_name = f"{prefix}-seq-{seq_len}-ddp-{num_layer}-layer-{num_head}-head-{learning_rate:.1e}-{weight_decay:.1e}-batch-{batch_size}"
+prefix = "gpt-2-small"
+wandb_run_name = f"{prefix}-seq-{seq_len}-{num_layer}-layer-{num_head}-head-{learning_rate:.1e}-{weight_decay:.1e}-batch-{batch_size}"
 np.random.seed(42)
 
 config = {
@@ -79,7 +79,7 @@ class SelfAttention(pax.ParameterModule):
         self.W_qkv = jnp.array(
             np.random.randn(dim, 3 * dim) / math.sqrt(3 * dim)
         ).astype(jnp.float32)
-        self.W_o = jnp.array(np.random.randn(dim, dim) / math.sqrt(dim)).astype(
+        self.W_o = jnp.array(np.random.randn(dim, dim) * 1e-2 / math.sqrt(dim)).astype(
             jnp.float32
         )
         assert dim % num_head == 0
@@ -113,9 +113,9 @@ class MLP(pax.ParameterModule):
             jnp.float32
         )
         # we use dim/2 instead of dim because of relu, which zeros out 1/2 of input neurons
-        self.W_2 = jnp.array(np.random.randn(4 * dim, dim) / math.sqrt(dim / 2)).astype(
-            jnp.float32
-        )
+        self.W_2 = jnp.array(
+            np.random.randn(4 * dim, dim) * 1e-2 / math.sqrt(dim / 2)
+        ).astype(jnp.float32)
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
         x_0 = jnp.einsum("NLD,DK->NLK", x, self.W_0)
