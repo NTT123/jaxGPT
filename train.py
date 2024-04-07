@@ -36,9 +36,8 @@ updates_per_step = gradient_accumulation_steps
 batch_size = (
     num_tokens_per_batch // num_devices // gradient_accumulation_steps // seq_len
 )
-print("Batch size:", batch_size)
-prefix = "gpt-2-small"
-wandb_run_name = f"{prefix}-seq-{seq_len}-{num_layer}-layer-{num_head}-head-{learning_rate:.1e}-{weight_decay:.1e}-batch-{batch_size}"
+print("Batch size per device:", batch_size)
+wandb_run_name = f"{wandb_project}-seq-{seq_len}-{num_layer}-layer-{num_head}-head-{learning_rate:.1e}-{weight_decay:.1e}-batch-{batch_size}"
 np.random.seed(42)
 
 config = {
