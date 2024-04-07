@@ -192,6 +192,20 @@ def load_ckpt(step: int, model, path: Path):
     return step, model, optimizer_state
 
 
+def save_ckpt(step: int, pmodel, poptimizer, path: Path):
+    model = jax.tree_util.tree_map(lambda x: x[0], pmodel)
+    optimizer = jax.tree_util.tree_map(lambda x: x[0], poptimizer)
+    with open(path, "wb") as f:
+        pickle.dump(
+            {
+                "step": step,
+                "state_dict": jax.device_get(model.state_dict()),
+                "optimizer_state": jax.device_get(optimizer),
+            },
+            f,
+        )
+
+
 def update_step(net_optimizer_state, xy):
     net, optimizer_state = net_optimizer_state
     loss_and_grad_fn = pax.value_and_grad(loss_fn)
@@ -234,21 +248,6 @@ optimizer_state = jax.device_put_replicated(optimizer_state, jax.devices())
 
 num_devices = jax.device_count()
 data_iter = get_data_iter("train", num_devices * updates_per_step * batch_size, seq_len)
-
-
-def save_ckpt(step: int, pmodel, poptimizer, path: Path):
-    model = jax.tree_util.tree_map(lambda x: x[0], pmodel)
-    optimizer = jax.tree_util.tree_map(lambda x: x[0], poptimizer)
-    with open(path, "wb") as f:
-        pickle.dump(
-            {
-                "step": step,
-                "state_dict": jax.device_get(model.state_dict()),
-                "optimizer_state": jax.device_get(optimizer),
-            },
-            f,
-        )
-
 
 start = time.perf_counter()
 
