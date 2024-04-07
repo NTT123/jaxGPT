@@ -1,2 +1,3 @@
+optax
 pax3
 wandb
