@@ -111,7 +111,6 @@ class MLP(pax.ParameterModule):
         self.W_1 = jnp.array(np.random.randn(dim, 4 * dim) / math.sqrt(4 * dim)).astype(
             jnp.float32
         )
-        # we use dim/2 instead of dim because of relu, which zeros out 1/2 of input neurons
         self.W_2 = jnp.array(
             np.random.randn(4 * dim, dim) * 1e-2 / math.sqrt(dim / 2)
         ).astype(jnp.float32)
