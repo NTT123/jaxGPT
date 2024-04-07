@@ -187,33 +187,6 @@ def loss_fn(model, x, y):
     return loss
 
 
-net = GPT(dim, num_head, num_layer, vocab_size, seq_len)
-
-lr_scheduler = optax.warmup_cosine_decay_schedule(
-    0.0, 1.0, warmup_steps, training_steps, 1e-1
-)
-optimizer = optax.chain(
-    optax.clip_by_global_norm(grad_clip),
-    optax.scale_by_adam(b1=b1, b2=b2),
-    optax.add_decayed_weights(weight_decay),
-    optax.scale_by_schedule(lr_scheduler),
-    optax.scale(-learning_rate),
-)
-optimizer = optax.MultiSteps(optimizer, every_k_schedule=gradient_accumulation_steps)
-optimizer_state = optimizer.init(net.parameters())
-
-lr_scheduler = optax.warmup_cosine_decay_schedule(0.0, 1.0, 1_000, 500_000, 1e-1)
-optimizer = optax.chain(
-    optax.clip_by_global_norm(grad_clip),
-    optax.scale_by_adam(b1=b1, b2=b2),
-    optax.add_decayed_weights(weight_decay),
-    optax.scale_by_schedule(lr_scheduler),
-    optax.scale(-learning_rate),
-)
-optimizer = optax.MultiSteps(optimizer, every_k_schedule=gradient_accumulation_steps)
-optimizer_state = optimizer.init(net.parameters())
-
-
 def load_ckpt(step: int, model, path: Path):
     ckpt = pickle.load(open(f"{wandb_run_name}_{step:05d}.ckpt", "rb"))
     model = model.load_state_dict(ckpt["state_dict"])
@@ -241,6 +214,21 @@ def update_fn(model, optimizer_state, multi_batch: jnp.ndarray):
     )
     return model, optimizer_state, jnp.mean(losses)
 
+
+net = GPT(dim, num_head, num_layer, vocab_size, seq_len)
+
+lr_scheduler = optax.warmup_cosine_decay_schedule(
+    0.0, 1.0, warmup_steps, training_steps, 1e-1
+)
+optimizer = optax.chain(
+    optax.clip_by_global_norm(grad_clip),
+    optax.scale_by_adam(b1=b1, b2=b2),
+    optax.add_decayed_weights(weight_decay),
+    optax.scale_by_schedule(lr_scheduler),
+    optax.scale(-learning_rate),
+)
+optimizer = optax.MultiSteps(optimizer, every_k_schedule=gradient_accumulation_steps)
+optimizer_state = optimizer.init(net.parameters())
 
 # replicate on multiple devices
 net = jax.device_put_replicated(net, jax.devices())
