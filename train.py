@@ -145,10 +145,8 @@ class GPT(pax.ParameterModule):
         self.norm = RMSNorm(dim)
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
-        key = x[:, 0]
         N, L = x.shape
         pos = jnp.arange(0, L, dtype=x.dtype)[None, :]
-
         pos = self.W_pos_embed[(pos,)]
         x = self.W_embed[(x,)]
         x = x + pos
