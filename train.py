@@ -41,7 +41,6 @@ wandb_run_name = f"{wandb_project}-seq-{seq_len}-{num_layer}-layer-{num_head}-he
 np.random.seed(42)
 
 config = {
-    "prefix": prefix,
     "vocab_size": vocab_size,
     "dim": dim,
     "num_head": num_head,
@@ -164,9 +163,10 @@ class GPT(pax.ParameterModule):
 
 
 def get_data_iter(split: str, batch_size: int, block_size: int, data_dir="data"):
-    data = np.copy(
-        np.memmap(os.path.join(data_dir, split + ".bin"), dtype=np.uint16, mode="r")
-    )
+    # data = np.copy(
+    #     np.memmap(os.path.join(data_dir, split + ".bin"), dtype=np.uint16, mode="r")
+    # )
+    data = np.random.randint(1, 5100, size=(10_000_000_000), dtype=np.uint16)
     L = data.shape[0]
 
     while True:
@@ -248,6 +248,7 @@ num_devices = jax.device_count()
 data_iter = get_data_iter("train", num_devices * updates_per_step * batch_size, seq_len)
 
 start = time.perf_counter()
+step = 0
 
 for xy in data_iter:
     step = step + 1
